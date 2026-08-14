@@ -3621,6 +3621,7 @@ describe("AppServerHost HarnessAdapter projection", () => {
     const fixture = createFixture({
       environment: {
         VISIBLE_TO_OFFICIAL: "yes",
+        CODEXHOST_ANTIGRAVITY_COMMAND: "/synthetic/agy",
         CODEXHOST_DATA_DIR: "/synthetic/codexhost-data",
         CODEXHOST_ENABLE_CLAUDE_CODE: "1",
         CODEXHOST_CLAUDE_COMMAND: "/synthetic/claude",

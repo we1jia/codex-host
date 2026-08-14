@@ -45,6 +45,7 @@ export function auditHostBundleMetafile(metafile) {
     "/packages/host-runtime/src/release-main.ts/",
     "/packages/host-runtime/src/app-server-host.ts/",
     "/packages/host-runtime/src/adapter-composition.ts/",
+    "/packages/adapters/antigravity/",
     "/packages/adapters/pi/",
     "/packages/adapters/claude-code/",
     "/packages/adapters/deepseek-harness/",

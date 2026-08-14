@@ -6,6 +6,7 @@ import {
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  ANTIGRAVITY_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_TRANSPORT_MODEL_ID,
   DEEPSEEK_HARNESS_TRANSPORT_MODEL_ID,
   claudeTransportModelId,
@@ -223,6 +224,10 @@ describe("versioned Renderer Agent adapter", () => {
     });
     expect(modelSelectionForAgent(null, "high", "deepseek-harness")).toEqual({
       model: DEEPSEEK_HARNESS_TRANSPORT_MODEL_ID,
+      reasoningEffort: "high",
+    });
+    expect(modelSelectionForAgent(null, "high", "antigravity")).toEqual({
+      model: ANTIGRAVITY_TRANSPORT_MODEL_ID,
       reasoningEffort: "high",
     });
     expect(modelSelectionForAgent(null, "high", "codex")).toBeNull();

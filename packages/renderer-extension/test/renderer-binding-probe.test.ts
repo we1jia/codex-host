@@ -259,6 +259,15 @@ describe("Renderer Composer DOM behavior", () => {
       agent: "deepseek-harness",
       model: { id: "deepseek-harness-model-v1.Zmxhc2g" },
     });
+    expect(
+      restoredThreadOwnership({
+        owner: "external",
+        harnessId: "antigravity",
+        transportModelId: "codexhost/antigravity-native",
+        history: { fork: false, forkAcrossCwd: false, rollbackLastTurn: false },
+        locked: true,
+      }),
+    ).toEqual({ agent: "antigravity" });
     expect(() =>
       restoredThreadOwnership({
         owner: "external",

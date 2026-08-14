@@ -68,14 +68,15 @@ function userInstallCandidates(
       path.join(homeDirectory, ".local", "bin", "claude.cmd"),
     ];
   }
-  return [
+  const homeCandidates = [
     path.join(homeDirectory, ".npm-global", "bin", "claude"),
     path.join(homeDirectory, ".local", "bin", "claude"),
     path.join(homeDirectory, ".claude", "local", "claude"),
     ...nvmCandidates(homeDirectory),
-    "/opt/homebrew/bin/claude",
-    "/usr/local/bin/claude",
   ];
+  return platform === "darwin"
+    ? [...homeCandidates, "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
+    : homeCandidates;
 }
 
 export function resolveClaudeCodeExecutable(

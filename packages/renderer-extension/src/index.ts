@@ -16,6 +16,7 @@ export {
   DEFAULT_RENDERER_AGENTS,
   DraftAgentController,
   KNOWN_RENDERER_AGENTS,
+  rendererAgentRequiresModel,
 } from "./agent-selection-state.js";
 export type {
   ComposerAgentPhase,
@@ -74,6 +75,7 @@ export type {
   RestoredThreadOwnership,
 } from "./renderer-binding-probe.js";
 export {
+  ANTIGRAVITY_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_TRANSPORT_MODEL_PREFIX,
   GROK_TRANSPORT_MODEL_ID,

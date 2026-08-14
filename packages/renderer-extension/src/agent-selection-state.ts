@@ -10,6 +10,7 @@ export const KNOWN_RENDERER_AGENTS = [
   "claude-code",
   "deepseek-harness",
   "grok",
+  "antigravity",
 ] as const;
 export const DEFAULT_RENDERER_AGENTS = KNOWN_RENDERER_AGENTS;
 export type RendererAgent = (typeof KNOWN_RENDERER_AGENTS)[number];
@@ -17,6 +18,10 @@ export type ExternalRendererAgent = Exclude<RendererAgent, "codex">;
 export type RendererAgentAvailability =
   "checking" | "ready" | "notInstalled" | "unavailable" | "error";
 export type ComposerAgentPhase = "draft" | "locked";
+
+export function rendererAgentRequiresModel(agent: RendererAgent): boolean {
+  return agent !== "codex" && agent !== "antigravity";
+}
 
 export interface DraftComposerState {
   agent: RendererAgent;
@@ -196,7 +201,13 @@ export class DraftAgentController<Composer extends object> {
     else if (agent === "grok") delete state.grokThinkingOptionId;
     if (agent !== "codex") {
       const permissionModeByAgent: NonNullable<DraftComposerState["permissionModeByAgent"]> = {};
-      for (const candidate of ["pi", "claude-code", "deepseek-harness", "grok"] as const) {
+      for (const candidate of [
+        "pi",
+        "claude-code",
+        "deepseek-harness",
+        "grok",
+        "antigravity",
+      ] as const) {
         const current = state.permissionModeByAgent?.[candidate];
         if (candidate !== agent && current) permissionModeByAgent[candidate] = current;
       }
@@ -257,7 +268,7 @@ export class DraftAgentController<Composer extends object> {
     if (agent === "pi") state.piModel = model;
     else if (agent === "claude-code") state.claudeModel = model;
     else if (agent === "deepseek-harness") state.deepSeekHarnessModel = model;
-    else state.grokModel = model;
+    else if (agent === "grok") state.grokModel = model;
     return state;
   }
 

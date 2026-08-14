@@ -7,10 +7,12 @@ import {
 import { describe, expect, it } from "vitest";
 
 import {
+  ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_NATIVE_TRANSPORT_MODEL_ID,
   DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID,
   GROK_NATIVE_TRANSPORT_MODEL_ID,
   PI_NATIVE_TRANSPORT_MODEL_ID,
+  decodeAntigravityTransportSelection,
   decodeClaudeTransportSelection,
   decodeDeepSeekHarnessTransportSelection,
   decodeCreateRoute,
@@ -20,7 +22,9 @@ import {
   decodePiTransportModel,
   decodePiTransportSelection,
   encodeClaudeTransportModel,
+  encodeAntigravityTransportModel,
   encodeDeepSeekHarnessTransportModel,
+  encodeExternalTransportSelection,
   encodeGrokTransportModel,
   encodePiTransportModel,
   transportModelIdForHarness,
@@ -32,6 +36,7 @@ describe("external Harness transport model routing", () => {
     ["claude-code", CLAUDE_CODE_NATIVE_TRANSPORT_MODEL_ID],
     ["deepseek-harness", DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID],
     ["grok", GROK_NATIVE_TRANSPORT_MODEL_ID],
+    ["antigravity", ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID],
   ] as const)("decodes the %s native transport token", (harnessId, transportModelId) => {
     const request: JsonRpcRequest = {
       id: 2,
@@ -51,6 +56,20 @@ describe("external Harness transport model routing", () => {
       decodeCreateRoute({ id: 3, method: "thread/start", params: { model: "official/model" } }),
     ).toEqual({ harnessId: "codex", transportModelId: "official/model" });
     expect(decodeCreateRoute({ id: 4, method: "model/list", params: {} })).toBeNull();
+  });
+
+  it("routes Antigravity without inventing Model or Thinking selection", () => {
+    expect(encodeAntigravityTransportModel()).toBe(ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID);
+    expect(decodeAntigravityTransportSelection(ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID)).toEqual({});
+    expect(decodeAntigravityTransportSelection("official/model")).toBeNull();
+    expect(encodeExternalTransportSelection("antigravity", {})).toBe(
+      ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID,
+    );
+    expect(() =>
+      encodeExternalTransportSelection("antigravity", {
+        model: harnessModelRefSchema.parse({ id: "manual-model" }),
+      }),
+    ).toThrow("does not support Model, Thinking, or Permission selection");
   });
 
   it("round-trips a bounded opaque selected Pi Model Ref", () => {
