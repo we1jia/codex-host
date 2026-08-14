@@ -1,3 +1,4 @@
+import { packageMetadata as antigravityAdapter } from "@codexhost/adapter-antigravity";
 import { packageMetadata as claudeCodeAdapter } from "@codexhost/adapter-claude-code";
 import { packageMetadata as deepSeekHarnessAdapter } from "@codexhost/adapter-deepseek-harness";
 import { packageMetadata as grokAdapter } from "@codexhost/adapter-grok";
@@ -10,6 +11,7 @@ import { packageMetadata as sharedContracts } from "@codexhost/shared-contracts"
 import { packageMetadata as updateManager } from "@codexhost/update-manager";
 
 export {
+  ANTIGRAVITY_COMMAND_ENV,
   CLAUDE_CODE_COMMAND_ENV,
   DEEPSEEK_HARNESS_COMMAND_ENV,
   DEEPSEEK_HARNESS_ENDPOINT_ENV,
@@ -37,6 +39,7 @@ export const packageMetadata = {
   name: "@codexhost/host-runtime",
   dependencies: [
     protocolCore.name,
+    antigravityAdapter.name,
     claudeCodeAdapter.name,
     deepSeekHarnessAdapter.name,
     desktopControl.name,

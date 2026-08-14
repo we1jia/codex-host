@@ -16,7 +16,14 @@ export const DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID = "codexhost/deepseek-ha
 export const DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_PREFIX = `${DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID}@`;
 export const GROK_NATIVE_TRANSPORT_MODEL_ID = "codexhost/grok-native";
 export const GROK_NATIVE_TRANSPORT_MODEL_PREFIX = `${GROK_NATIVE_TRANSPORT_MODEL_ID}@`;
-export const EXTERNAL_HARNESS_IDS = ["pi", "claude-code", "deepseek-harness", "grok"] as const;
+export const ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID = "codexhost/antigravity-native";
+export const EXTERNAL_HARNESS_IDS = [
+  "pi",
+  "claude-code",
+  "deepseek-harness",
+  "grok",
+  "antigravity",
+] as const;
 
 export type ExternalHarnessId = (typeof EXTERNAL_HARNESS_IDS)[number];
 export type RoutedHarnessId = "codex" | ExternalHarnessId;
@@ -26,6 +33,7 @@ const transportModelByHarness = {
   "claude-code": CLAUDE_CODE_NATIVE_TRANSPORT_MODEL_ID,
   "deepseek-harness": DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID,
   grok: GROK_NATIVE_TRANSPORT_MODEL_ID,
+  antigravity: ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID,
 } as const satisfies Record<ExternalHarnessId, string>;
 
 const harnessByTransportModel = new Map<string, ExternalHarnessId>(
@@ -238,6 +246,21 @@ export function decodeDeepSeekHarnessTransportSelection(
   return { model: model.data };
 }
 
+export function encodeAntigravityTransportModel(
+  selection: ExternalConfigurationSelection = {},
+): string {
+  if (selection.model || selection.thinkingOptionId || selection.permissionModeId) {
+    throw new Error("Antigravity MVP does not support Model, Thinking, or Permission selection");
+  }
+  return ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID;
+}
+
+export function decodeAntigravityTransportSelection(
+  value: unknown,
+): ExternalConfigurationSelection | null {
+  return value === ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID ? {} : null;
+}
+
 export function encodeExternalTransportSelection(
   harnessId: ExternalHarnessId,
   selection: ExternalConfigurationSelection,
@@ -258,6 +281,8 @@ export function encodeExternalTransportSelection(
         throw new Error("Grok transport does not support Permission Mode selection");
       }
       return encodeGrokTransportModel(selection.model, selection.thinkingOptionId);
+    case "antigravity":
+      return encodeAntigravityTransportModel(selection);
   }
 }
 
@@ -274,6 +299,8 @@ export function decodeExternalTransportSelection(
       return decodeDeepSeekHarnessTransportSelection(value);
     case "grok":
       return decodeGrokTransportSelection(value);
+    case "antigravity":
+      return decodeAntigravityTransportSelection(value);
   }
 }
 
@@ -325,6 +352,15 @@ export function decodeCreateRoute(request: JsonRpcRequest): CreateRoute | null {
       routeMode: "native",
       transportModelId: request.params.model,
       ...grokSelection,
+    };
+  }
+  const antigravitySelection = decodeAntigravityTransportSelection(request.params.model);
+  if (antigravitySelection !== null) {
+    return {
+      harnessId: "antigravity",
+      routeMode: "native",
+      transportModelId: request.params.model,
+      ...antigravitySelection,
     };
   }
 

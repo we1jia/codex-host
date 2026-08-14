@@ -166,6 +166,7 @@ function officialEnvironment(source: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
     "CODEXHOST_DATA_DIR",
     "CODEXHOST_DEFAULT_AGENT",
     "CODEXHOST_HOST_RUNTIME_PATH",
+    "CODEXHOST_ANTIGRAVITY_COMMAND",
     "CODEXHOST_PI_COMMAND",
     "CODEXHOST_ENABLE_CLAUDE_CODE",
     "CODEXHOST_CLAUDE_COMMAND",
@@ -208,6 +209,8 @@ function approvalServerName(harnessId: ExternalHarnessId): string {
       return "DeepSeek Harness";
     case "grok":
       return "Grok";
+    case "antigravity":
+      return "Antigravity";
   }
 }
 

@@ -14,6 +14,7 @@ import {
 import {
   DEFAULT_RENDERER_AGENTS,
   DraftAgentController,
+  rendererAgentRequiresModel,
   type ComposerAgentPhase,
   type ExternalRendererAgent,
   type RendererAgent,
@@ -74,6 +75,7 @@ const externalHarnessIds = {
   "claude-code": harnessIdSchema.parse("claude-code"),
   "deepseek-harness": harnessIdSchema.parse("deepseek-harness"),
   grok: harnessIdSchema.parse("grok"),
+  antigravity: harnessIdSchema.parse("antigravity"),
 } as const;
 
 const externalAgents: readonly ExternalRendererAgent[] = [
@@ -81,6 +83,7 @@ const externalAgents: readonly ExternalRendererAgent[] = [
   "claude-code",
   "deepseek-harness",
   "grok",
+  "antigravity",
 ];
 type HarnessAvailability = Partial<Record<ExternalRendererAgent, RendererAgentAvailability>>;
 
@@ -240,6 +243,12 @@ export function restoredThreadOwnership(inspection: ThreadInspection): RestoredT
     const model = inspection.effectiveModel ?? transportSelection.model;
     return { agent: "deepseek-harness", ...(model ? { model } : {}) };
   }
+  if (inspection.harnessId === "antigravity") {
+    if (inspection.transportModelId !== "codexhost/antigravity-native") {
+      throw new Error("Antigravity Thread reported an incompatible transport Model");
+    }
+    return { agent: "antigravity" };
+  }
   throw new Error("Thread owner is not a Renderer Agent");
 }
 
@@ -258,6 +267,7 @@ interface MountedComposer {
   threadConfiguration: HarnessModelSelectionState | undefined;
   usage: ThreadUsageSnapshot | null;
   usageRequestGeneration: number;
+  submissionError: string | null;
 }
 
 interface PendingComposerReplacement {
@@ -392,13 +402,18 @@ export function installRendererBindingProbe(
   const usageRefreshTimers = new Map<Element, number>();
   const usageRefreshAttempts = new Map<Element, number>();
 
+  const isMountedComposer = (composer: Element): boolean =>
+    composer.isConnected &&
+    composer.matches(CODEX_COMPOSER_SELECTOR) &&
+    mountedByComposer.has(composer);
+
   const isCurrentModelRequest = (mounted: MountedComposer, generation: number): boolean =>
-    mounted.composer.isConnected &&
+    isMountedComposer(mounted.composer) &&
     mountedByComposer.get(mounted.composer) === mounted &&
     controller.isCurrentModelRequest(mounted.composer, generation);
 
   const isCurrentOwnershipRequest = (mounted: MountedComposer, generation: number): boolean =>
-    mounted.composer.isConnected &&
+    isMountedComposer(mounted.composer) &&
     mountedByComposer.get(mounted.composer) === mounted &&
     controller.isCurrentOwnershipRequest(mounted.composer, generation);
 
@@ -437,6 +452,7 @@ export function installRendererBindingProbe(
       mounted.modelView,
       mounted.permissionModeView,
       mounted.usage,
+      mounted.submissionError,
     );
   };
 
@@ -504,6 +520,13 @@ export function installRendererBindingProbe(
   const isExternalConfigurationReady = (mounted: MountedComposer): boolean => {
     const current = controller.get(mounted.composer);
     if (current.agent === "codex") return true;
+    if (!rendererAgentRequiresModel(current.agent)) {
+      return (
+        mounted.modelView.status !== "selecting" &&
+        mounted.modelView.status !== "error" &&
+        isPermissionModeControlReady(mounted.permissionModeView)
+      );
+    }
     return (
       mounted.modelView.status !== "selecting" &&
       mounted.modelView.catalog?.models.some(
@@ -1338,7 +1361,13 @@ export function installRendererBindingProbe(
   };
 
   const mount = (composer: Element): void => {
-    if (mountedByComposer.has(composer) || !composer.isConnected) return;
+    if (
+      mountedByComposer.has(composer) ||
+      !composer.isConnected ||
+      !composer.matches(CODEX_COMPOSER_SELECTOR)
+    ) {
+      return;
+    }
     const allButtons = [...composer.querySelectorAll<HTMLButtonElement>("button")];
     const sendButton = sendButtonWithin(composer) ?? allButtons.at(-1) ?? null;
     if (!sendButton) return;
@@ -1391,6 +1420,7 @@ export function installRendererBindingProbe(
       threadConfiguration: inherited?.threadConfiguration,
       usage: inherited?.usage ?? null,
       usageRequestGeneration: 0,
+      submissionError: inherited?.submissionError ?? null,
     };
     mountedByComposer.set(composer, mounted);
     if (isComposerModelWriteAllowed(modelTarget)) {
@@ -1441,7 +1471,18 @@ export function installRendererBindingProbe(
       }
     }
     for (const [composer, mounted] of mountedByComposer) {
-      if (!composer.isConnected || !mounted.control.root.isConnected) {
+      if (
+        !composer.isConnected ||
+        !composer.matches(CODEX_COMPOSER_SELECTOR) ||
+        !mounted.control.root.isConnected
+      ) {
+        mounted.usageRequestGeneration += 1;
+        usageRefreshAttempts.delete(composer);
+        const timer = usageRefreshTimers.get(composer);
+        if (timer !== undefined) {
+          window.clearTimeout(timer);
+          usageRefreshTimers.delete(composer);
+        }
         disposeComposerAgentControl(mounted.control);
         mountedByComposer.delete(composer);
         continue;
@@ -1538,6 +1579,11 @@ export function installRendererBindingProbe(
     event.preventDefault();
     event.stopImmediatePropagation();
   };
+  const blockSubmission = (mounted: MountedComposer, event: Event): void => {
+    mounted.submissionError = "Agent route is not ready; your draft was kept.";
+    renderMounted(mounted);
+    blockEvent(event);
+  };
   const prepareComposer = (composer: Element): boolean | null => {
     const mounted = mountedByComposer.get(composer);
     if (!mounted) return null;
@@ -1556,60 +1602,59 @@ export function installRendererBindingProbe(
   const composerForTarget = (target: EventTarget | null): Element | null => {
     const element = eventElement(target);
     const editor = element ? editorForElement(element) : null;
-    return editor ? composerForEditor(editor) : null;
+    const composer = editor ? composerForEditor(editor) : null;
+    return composer && isMountedComposer(composer) ? composer : null;
   };
   const onBeforeInput = (event: InputEvent): void => {
     const composer = composerForTarget(event.target);
     if (!composer) return;
-    const mounted = mountedByComposer.get(composer);
-    if (mounted && isOwnershipSubmissionBlocked(mounted.ownershipStatus)) return;
-    if (controller.isSwitching(composer) || !applyComposerAgent(composer)) blockEvent(event);
+    void applyComposerAgent(composer);
   };
   const onSubmit = (event: Event): void => {
     const element = eventElement(event.target);
-    const composer = element ? composerForElement(element) : null;
+    const candidate = element ? composerForElement(element) : null;
+    const composer = candidate && isMountedComposer(candidate) ? candidate : null;
     if (!composer) return;
     const prepared = prepareComposer(composer);
     if (prepared === null) return;
     if (!prepared) {
-      blockEvent(event);
+      const mounted = mountedByComposer.get(composer);
+      if (mounted) blockSubmission(mounted, event);
       return;
     }
+    const mounted = mountedByComposer.get(composer);
+    if (mounted) mounted.submissionError = null;
     notifySubmission(composer, "submit");
   };
   const onKeyDown = (event: KeyboardEvent): void => {
     const composer = isComposerInputIntent(event) ? composerForTarget(event.target) : null;
-    const mounted = composer ? mountedByComposer.get(composer) : undefined;
-    if (composer && controller.isSwitching(composer)) {
-      blockEvent(event);
+    if (!composer) return;
+    if (!isComposerSubmissionKey(event)) {
+      void applyComposerAgent(composer);
       return;
     }
-    if (composer && mounted && isOwnershipSubmissionBlocked(mounted.ownershipStatus)) {
-      if (isComposerSubmissionKey(event)) blockEvent(event);
-      return;
-    }
-    if (composer && !applyComposerAgent(composer)) {
-      blockEvent(event);
-      return;
-    }
-    if (!isComposerSubmissionKey(event) || !composer) return;
+    const mounted = mountedByComposer.get(composer);
+    if (!mounted) return;
     if (!prepareComposer(composer)) {
-      blockEvent(event);
+      blockSubmission(mounted, event);
       return;
     }
+    mounted.submissionError = null;
     notifySubmission(composer, "enter");
   };
   const onClick = (event: MouseEvent): void => {
     const element = eventElement(event.target);
     const button = element?.closest<HTMLButtonElement>("button");
     if (!button) return;
-    const composer = composerForElement(button);
+    const candidate = composerForElement(button);
+    const composer = candidate && isMountedComposer(candidate) ? candidate : null;
     const mounted = composer ? mountedByComposer.get(composer) : undefined;
     if (!composer || mounted?.control.sendButton !== button) return;
     if (!prepareComposer(composer)) {
-      blockEvent(event);
+      blockSubmission(mounted, event);
       return;
     }
+    mounted.submissionError = null;
     notifySubmission(composer, "click");
   };
 
@@ -1634,7 +1679,7 @@ export function installRendererBindingProbe(
   };
   mutationObserver.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: ["hidden", "aria-hidden"],
+    attributeFilter: ["hidden", "aria-hidden", "data-codex-composer-root"],
     characterData: true,
     childList: true,
     subtree: true,

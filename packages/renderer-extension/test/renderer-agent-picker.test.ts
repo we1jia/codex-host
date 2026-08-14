@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 
 import { isNativeModelControlCandidate } from "../src/renderer-composer-dom.js";
-import { rendererAgentPickerView } from "../src/renderer-agent-picker.js";
+import {
+  RENDERER_AGENT_INSTALL_URLS,
+  rendererAgentPickerView,
+} from "../src/renderer-agent-picker.js";
 
 describe("Renderer Agent picker presentation", () => {
+  it("links Antigravity to its official installation documentation", () => {
+    expect(RENDERER_AGENT_INSTALL_URLS.antigravity).toMatch(/^https:\/\/antigravity\.google\//u);
+  });
+
   it("keeps a Codex draft switchable while disabling unavailable external Agents", () => {
     expect(
       rendererAgentPickerView({ agent: "codex", phase: "draft" }, "unsupported", false, [

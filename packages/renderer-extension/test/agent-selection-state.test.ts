@@ -5,7 +5,11 @@ import {
 } from "@codexhost/shared-contracts";
 import { describe, expect, it, vi } from "vitest";
 
-import { DraftAgentController } from "../src/index.js";
+import {
+  DraftAgentController,
+  KNOWN_RENDERER_AGENTS,
+  rendererAgentRequiresModel,
+} from "../src/index.js";
 
 function controller(): DraftAgentController<object> {
   return new DraftAgentController<object>({
@@ -14,6 +18,12 @@ function controller(): DraftAgentController<object> {
 }
 
 describe("Renderer draft Agent controller", () => {
+  it("registers Antigravity without requiring a Renderer Model selection", () => {
+    expect(KNOWN_RENDERER_AGENTS).toContain("antigravity");
+    expect(rendererAgentRequiresModel("antigravity")).toBe(false);
+    expect(rendererAgentRequiresModel("pi")).toBe(true);
+  });
+
   it("isolates Agent selection by Composer", async () => {
     const firstComposer = {};
     const secondComposer = {};

@@ -333,6 +333,12 @@ export function mountRendererModelPicker(
     closeModelMenu();
     modelButton.focus();
     onSelectModel(target.dataset.modelId);
+    queueMicrotask(() => {
+      if (!popoverOpen(menu) && control.root.isConnected && control.root.style.display !== "none") {
+        menu.showPopover();
+        positionMainMenu(control);
+      }
+    });
   };
   const onModelHover = (): void => openModelMenu();
   const onViewportChange = (): void => {

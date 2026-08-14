@@ -8,6 +8,7 @@ export const RENDERER_AGENT_LABELS: Record<RendererAgent, string> = {
   "claude-code": "Claude Code",
   "deepseek-harness": "DeepSeek Harness",
   grok: "Grok",
+  antigravity: "Antigravity",
 };
 
 const PI_PATHS = [
@@ -77,6 +78,14 @@ export function createRendererAgentIcon(
       size,
       ownerDocument,
       "0 0 23.16 17.04",
+    );
+  }
+  if (agent === "antigravity") {
+    return createSvgIcon(
+      [{ d: "M12 2 3 21h4.2l1.8-4h6l1.8 4H21L12 2zm0 7.2 1.6 3.8h-3.2L12 9.2z" }],
+      "currentColor",
+      size,
+      ownerDocument,
     );
   }
   const mark = ownerDocument.createElement("img");

@@ -2,11 +2,11 @@
 
 # codexhost
 
-**Run Pi, Claude Code, DeepSeek Harness, and Grok inside [Codex Desktop](https://openai.com/codex/)**
+**Run Pi, Claude Code, DeepSeek Harness, Grok, and Antigravity inside [Codex Desktop](https://openai.com/codex/)**
 
 We believe **Codex Desktop** currently provides one of the best desktop development experiences.
 
-But **Codex** is not the only capable **Agent Harness**. Some developers prefer **Claude Code**, **Pi Agent**, **DeepSeek Harness**, or **Grok CLI**.
+But **Codex** is not the only capable **Agent Harness**. Some developers prefer **Claude Code**, **Pi Agent**, **DeepSeek Harness**, **Grok CLI**, or **Antigravity**.
 
 **codexhost** lets you choose the **Agent** that actually executes your tasks inside **Codex Desktop**, while preserving the native Codex experience.
 
@@ -21,6 +21,7 @@ But **Codex** is not the only capable **Agent Harness**. Some developers prefer 
   <a href="https://code.claude.com/docs/en/quickstart"><img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-D97757?logo=claudecode&logoColor=white" /></a>
   <a href="https://github.com/deepseek-ai/deepseek-harness"><img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek-4D6BFE?logo=deepseek&logoColor=white" /></a>
   <a href="https://grok.com/"><img alt="Grok" src="https://img.shields.io/badge/Grok-000000?logo=x&logoColor=white" /></a>
+  <a href="https://antigravity.google/"><img alt="Antigravity" src="https://img.shields.io/badge/Antigravity-4285F4?logo=google&logoColor=white" /></a>
 </p>
 
 <p><a href="../README.md">中文 README</a></p>
@@ -29,7 +30,7 @@ But **Codex** is not the only capable **Agent Harness**. Some developers prefer 
 
 ## Interface Preview
 
-Pi, Claude Code, DeepSeek Harness, and Grok run as independent sessions in the same Codex Desktop window. Streaming output, thinking, tool status, diffs, approvals, and questions are rendered in real time when supported by each Harness.
+Pi, Claude Code, DeepSeek Harness, Grok, and Antigravity run as independent sessions in the same Codex Desktop window. Streaming output, thinking, tool status, diffs, approvals, and questions are rendered in real time when supported by each Harness.
 
 ![Full demo of Pi and Claude Code running in Codex Desktop](imgs/demo.gif)
 
@@ -39,23 +40,23 @@ Pi, Claude Code, DeepSeek Harness, and Grok run as independent sessions in the s
 
 ## Feature Status
 
-| Capability | Codex | Pi | Claude Code | Grok Build | DeepSeek Harness |
-| --- | --- | --- | --- | --- | --- |
-| Streaming replies | Native | ✅ | ✅ | ✅ | ✅ |
-| Thinking | Native | ✅ | ✅ | ✅ | — |
-| Tool status | Native | ✅ | ✅ | ✅ | ✅ |
-| Edit diffs | Native | ✅ | ✅ | — | ✅ |
-| Ask / cancel | Native | ✅ | ✅ | 🚧 | ✅ |
-| Model / thinking selection | Native | ✅ | ✅ | ✅ | 🚧 |
-| Tool approvals | Native | ✅ | ✅ | ✅ | ✅ |
-| Permission modes | Native | — | ✅ | — | — |
-| Usage | Native | ✅ | ✅ | ✅ | ✅ |
-| Session resume | Native | ✅ | ✅ | ✅ | ✅ |
-| Thread management | Native | ✅ | 🚧 | 🚧 | 🚧 |
-| Fork | Native | ✅ | ✅ | — | — |
-| Context compaction | Native | ✅ | ✅ | — | ✅ |
-| Slash commands | Native | 🚧 | 🚧 | — | — |
-| Revise the previous message | Native | ✅ | 🚧 | — | — |
+| Capability | Codex | Pi | Claude Code | Grok Build | DeepSeek Harness | Antigravity |
+| --- | --- | --- | --- | --- | --- | --- |
+| Streaming replies | Native | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Thinking | Native | ✅ | ✅ | ✅ | — | — |
+| Tool status | Native | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Edit diffs | Native | ✅ | ✅ | — | ✅ | — |
+| Ask / cancel | Native | ✅ | ✅ | 🚧 | ✅ | 🚧 |
+| Model / thinking selection | Native | ✅ | ✅ | ✅ | 🚧 | — |
+| Tool approvals | Native | ✅ | ✅ | ✅ | ✅ | — |
+| Permission modes | Native | — | ✅ | — | — | — |
+| Usage | Native | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Session resume | Native | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Thread management | Native | ✅ | 🚧 | 🚧 | 🚧 | 🚧 |
+| Fork | Native | ✅ | ✅ | — | — | — |
+| Context compaction | Native | ✅ | ✅ | — | ✅ | — |
+| Slash commands | Native | 🚧 | 🚧 | — | — | — |
+| Revise the previous message | Native | ✅ | 🚧 | — | — | — |
 
 `✅` supported, `🚧` partial or in progress, `—` not currently supported.
 
@@ -77,6 +78,14 @@ After installing on macOS, if Apple says it cannot verify the app when you first
 xattr -dr com.apple.quarantine /Applications/codexhost.app
 ```
 Then open `codexhost` again.
+
+### Using Antigravity
+
+Install and authenticate the CLI using the [official Antigravity instructions](https://antigravity.google/), verify that `agy --version` works, and select **Antigravity** from the Agent picker. If `agy` is outside `PATH`, set `CODEXHOST_ANTIGRAVITY_COMMAND=/absolute/path/to/agy`.
+
+The MVP consumes the CLI's `stream-json` output and resumes the official `conversation_id`. It never adds a permission-bypass flag. Model, Thinking, permission-mode, Fork, and rollback selection are currently unsupported; see the [Antigravity Harness guide](antigravity-harness.md).
+
+The Composer input repair is scoped to Codex composers marked with `data-codex-composer-root`. Copy, paste, cut, Backspace, Delete, IME input, and `Shift+Enter` remain owned by the official editor. Only an unready submission route is blocked, and the draft is preserved.
 
 <details>
 <summary><h3>How it works</h3></summary>

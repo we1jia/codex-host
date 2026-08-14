@@ -138,7 +138,7 @@ test("selecting a Model keeps the main menu open and refreshes Thinking options"
   const root = page.locator('[data-codexhost-model-control="test-composer"]');
   const trigger = root.locator(':scope > button[aria-haspopup="menu"]');
   const mainMenu = root.locator('[aria-label="Model and Thinking"]');
-  const modelMenu = root.locator('[aria-label="Model"]');
+  const modelMenu = page.locator('[aria-label="Model"]');
 
   await trigger.click();
   await expect(mainMenu).toBeVisible();
@@ -216,7 +216,7 @@ test("Claude aliases show actual runtime Model without exposing Thinking", async
   await expect(root.locator("button[data-thinking-option-id]")).toHaveCount(0);
   await root.locator("button[data-open-model-menu]").click();
   const mainMenu = root.locator('[aria-label="Model and Thinking"]');
-  const modelMenu = root.locator('[aria-label="Model"]');
+  const modelMenu = page.locator('[aria-label="Model"]');
   await expect(modelMenu.locator("button[data-model-id]")).toHaveCount(2);
   const geometry = await Promise.all([
     trigger.boundingBox(),

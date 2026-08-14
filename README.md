@@ -23,6 +23,7 @@
   <a href="https://code.claude.com/docs/en/quickstart"><img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-D97757?logo=claudecode&logoColor=white" /></a>
   <a href="https://github.com/deepseek-ai/deepseek-harness"><img alt="DeepSeek Harness" src="https://img.shields.io/badge/DeepSeek-4D6BFE?logo=deepseek&logoColor=white" /></a>
   <a href="https://grok.com/"><img alt="Grok" src="https://img.shields.io/badge/Grok-000000?logo=x&logoColor=white" /></a>
+  <a href="https://antigravity.google/"><img alt="Antigravity" src="https://img.shields.io/badge/Antigravity-4285F4?logo=google&logoColor=white" /></a>
 </p>
 
 <p><a href="docs/README.en.md">English</a></p>
@@ -31,7 +32,7 @@
 
 ## 界面预览
 
-Pi、Claude Code、DeepSeek Harness 和 Grok 在同一个 Codex Desktop 中作为独立会话运行。各 Harness 支持的流式输出、思考过程、工具状态、Diff、审批与提问会实时渲染。
+Pi、Claude Code、DeepSeek Harness、Grok 和 Antigravity 在同一个 Codex Desktop 中作为独立会话运行。各 Harness 支持的流式输出、思考过程、工具状态、Diff、审批与提问会实时渲染。
 
 ![Pi 与 Claude Code 在 Codex Desktop 中运行的完整演示](docs/imgs/demo.gif)
 
@@ -41,23 +42,23 @@ Pi、Claude Code、DeepSeek Harness 和 Grok 在同一个 Codex Desktop 中作�
 
 ## 功能状态
 
-| 能力 | Codex | Pi | Claude Code | Grok Build | DeepSeek Harness |
-| --- | --- | --- | --- | --- | --- |
-| 流式回复 | 原生 | ✅ | ✅ | ✅ | ✅ |
-| Thinking | 原生 | ✅ | ✅ | ✅ | — |
-| 工具状态 | 原生 | ✅ | ✅ | ✅ | ✅ |
-| Edit Diff | 原生 | ✅ | ✅ | — | ✅ |
-| 提问 / 取消 | 原生 | ✅ | ✅ | 🚧 | ✅ |
-| Model / Thinking 选择 | 原生 | ✅ | ✅ | ✅ | 🚧 |
-| 工具审批 | 原生 | ✅ | ✅ | ✅ | ✅ |
-| 权限模式 | 原生 | — | ✅ | — | — |
-| Usage | 原生 | ✅ | ✅ | ✅ | ✅ |
-| 会话恢复 | 原生 | ✅ | ✅ | ✅ | ✅ |
-| Thread 管理 | 原生 | ✅ | 🚧 | 🚧 | 🚧 |
-| Fork | 原生 | ✅ | ✅ | — | — |
-| 上下文压缩 | 原生 | ✅ | ✅ | — | ✅ |
-| 斜杠命令 | 原生 | 🚧 | 🚧 | — | — |
-| 修订上一条消息 | 原生 | ✅ | 🚧 | — | — |
+| 能力 | Codex | Pi | Claude Code | Grok Build | DeepSeek Harness | Antigravity |
+| --- | --- | --- | --- | --- | --- | --- |
+| 流式回复 | 原生 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Thinking | 原生 | ✅ | ✅ | ✅ | — | — |
+| 工具状态 | 原生 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Edit Diff | 原生 | ✅ | ✅ | — | ✅ | — |
+| 提问 / 取消 | 原生 | ✅ | ✅ | 🚧 | ✅ | 🚧 |
+| Model / Thinking 选择 | 原生 | ✅ | ✅ | ✅ | 🚧 | — |
+| 工具审批 | 原生 | ✅ | ✅ | ✅ | ✅ | — |
+| 权限模式 | 原生 | — | ✅ | — | — | — |
+| Usage | 原生 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| 会话恢复 | 原生 | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Thread 管理 | 原生 | ✅ | 🚧 | 🚧 | 🚧 | 🚧 |
+| Fork | 原生 | ✅ | ✅ | — | — | — |
+| 上下文压缩 | 原生 | ✅ | ✅ | — | ✅ | — |
+| 斜杠命令 | 原生 | 🚧 | 🚧 | — | — | — |
+| 修订上一条消息 | 原生 | ✅ | 🚧 | — | — | — |
 
 `✅` 已支持，`🚧` 部分支持或开发中，`—` 当前不支持。
 
@@ -79,6 +80,14 @@ macOS 安装后，如果首次打开时提示 Apple 无法验证该应用，请�
 xattr -dr com.apple.quarantine /Applications/codexhost.app
 ```
 然后重新打开 `codexhost`。
+
+### 使用 Antigravity
+
+先按 [Antigravity 官方说明](https://antigravity.google/) 安装并登录 CLI，确认 `agy --version` 可用，然后启动 `codexhost`，在新任务输入框旁的 Agent 选择器中选择 **Antigravity**。如果 `agy` 不在 `PATH` 中，可通过 `CODEXHOST_ANTIGRAVITY_COMMAND=/绝对路径/agy` 指定。
+
+Antigravity MVP 使用 CLI 的 `stream-json` 输出，并通过官方 `conversation_id` 恢复会话；不会传入跳过权限检查的参数。当前不提供 Model、Thinking、权限模式、Fork 和回滚选择，详见 [Antigravity Harness 说明](docs/antigravity-harness.md)。
+
+输入框修复只绑定带有 `data-codex-composer-root` 标记的 Codex Composer。复制、粘贴、剪切、退格、Delete、输入法和 `Shift+Enter` 会交给官方编辑器处理；只有提交路由未就绪时才会阻止发送并保留草稿。
 
 <details>
 <summary><h3>怎么做的</h3></summary>

@@ -1,8 +1,9 @@
-import type {
-  ComposerAgentPhase,
-  ExternalRendererAgent,
-  RendererAgent,
-  RendererAgentAvailability,
+import {
+  rendererAgentRequiresModel,
+  type ComposerAgentPhase,
+  type ExternalRendererAgent,
+  type RendererAgent,
+  type RendererAgentAvailability,
 } from "./agent-selection-state.js";
 import type { ThreadUsageSnapshot } from "@codexhost/shared-contracts";
 import {
@@ -60,6 +61,7 @@ export interface ComposerAgentControl {
   nativePermissionModeControl: NativePermissionModeControlState | null;
   nativePermissionModeControlVerified: boolean;
   usage: RendererUsageControl;
+  submissionStatus: HTMLElement;
   sendButton: HTMLButtonElement;
   sendDisabledBeforeSwitch: boolean | null;
 }
@@ -110,31 +112,11 @@ export function isComposerSubmissionKey(event: KeyboardEvent): boolean {
 }
 
 export function composerForEditor(editor: Element): Element | null {
-  const codexComposer = editor.closest(CODEX_COMPOSER_SELECTOR);
-  if (codexComposer) return codexComposer;
-  const form = editor.closest("form");
-  if (form && sendButtonWithin(form)) return form;
-  let candidate = editor.parentElement;
-  for (let depth = 0; candidate && candidate !== document.body && depth < 8; depth += 1) {
-    if (sendButtonWithin(candidate)) return candidate;
-    candidate = candidate.parentElement;
-  }
-  return null;
+  return editor.closest(CODEX_COMPOSER_SELECTOR);
 }
 
 export function composerForElement(element: Element): Element | null {
-  const codexComposer = element.closest(CODEX_COMPOSER_SELECTOR);
-  if (codexComposer) return codexComposer;
-  const mounted = element.closest(`[${CONTROL_ATTRIBUTE}]`);
-  if (mounted) return mounted.parentElement;
-  const editor = editorForElement(element);
-  if (editor) return composerForEditor(editor);
-  let candidate: Element | null = element;
-  for (let depth = 0; candidate && candidate !== document.body && depth < 8; depth += 1) {
-    if (candidate.querySelector(`[${CONTROL_ATTRIBUTE}]`)) return candidate;
-    candidate = candidate.parentElement;
-  }
-  return null;
+  return element.closest(CODEX_COMPOSER_SELECTOR);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -392,6 +374,17 @@ export function mountComposerAgentControl(
     onSelectPermissionMode,
   );
   const usage = mountRendererUsageControl(composerId, nativeModelControl?.element.className);
+  const submissionStatus = document.createElement("span");
+  submissionStatus.setAttribute("data-codexhost-submission-status", "");
+  submissionStatus.setAttribute("role", "status");
+  submissionStatus.setAttribute("aria-live", "polite");
+  submissionStatus.hidden = true;
+  submissionStatus.style.maxWidth = "260px";
+  submissionStatus.style.overflow = "hidden";
+  submissionStatus.style.textOverflow = "ellipsis";
+  submissionStatus.style.whiteSpace = "nowrap";
+  submissionStatus.style.color = "#d97757";
+  submissionStatus.style.font = "500 12px/1.3 system-ui, sans-serif";
 
   const permissionParent = nativePermissionModeControl?.element.parentElement;
   if (permissionParent && nativePermissionModeControl && nativePermissionModeControlVerified) {
@@ -404,8 +397,9 @@ export function mountComposerAgentControl(
   if (toolbar) {
     toolbar.insertBefore(modelPicker.root, sendButton);
     toolbar.insertBefore(picker.root, sendButton);
+    toolbar.insertBefore(submissionStatus, sendButton);
   } else {
-    composer.append(modelPicker.root, picker.root);
+    composer.append(modelPicker.root, picker.root, submissionStatus);
   }
   const control = {
     composer,
@@ -417,6 +411,7 @@ export function mountComposerAgentControl(
     nativePermissionModeControl,
     nativePermissionModeControlVerified,
     usage,
+    submissionStatus,
     sendButton,
     sendDisabledBeforeSwitch: null,
   } satisfies ComposerAgentControl;
@@ -433,6 +428,7 @@ export function renderComposerAgentControl(
   modelView: ExternalModelControlView = { status: "idle" },
   permissionModeView: RendererPermissionModeControlView = { status: "idle" },
   usage: ThreadUsageSnapshot | null = null,
+  submissionError: string | null = null,
 ): void {
   const selectedModel = modelView.selected;
   const selectedCatalogModel = modelView.catalog?.models.find(
@@ -447,7 +443,8 @@ export function renderComposerAgentControl(
     availableThinkingOptions.some(({ id }) => id === modelView.selectedThinkingOptionId);
   const modelReady = selectedModel !== undefined && selectedCatalogModel !== undefined;
   const modelBlocked =
-    state.agent !== "codex" && (modelView.status === "selecting" || !modelReady || !thinkingReady);
+    rendererAgentRequiresModel(state.agent) &&
+    (modelView.status === "selecting" || !modelReady || !thinkingReady);
   const permissionModeBlocked =
     state.agent !== "codex" &&
     (!isPermissionModeControlReady(permissionModeView) ||
@@ -473,7 +470,11 @@ export function renderComposerAgentControl(
     pickerView.nativeModelHidden,
     switching || state.agent !== "codex",
   );
-  renderRendererModelPicker(control.modelPicker, modelView, state.agent !== "codex");
+  renderRendererModelPicker(
+    control.modelPicker,
+    modelView,
+    rendererAgentRequiresModel(state.agent),
+  );
   const permissionModeVisible =
     state.agent !== "codex" &&
     permissionModeView.status !== "idle" &&
@@ -486,6 +487,8 @@ export function renderComposerAgentControl(
     permissionModeVisible,
   );
   renderRendererUsageControl(control.usage, usage);
+  control.submissionStatus.textContent = submissionError ?? "";
+  control.submissionStatus.hidden = submissionError === null;
 }
 
 export function disposeComposerAgentControl(control: ComposerAgentControl): void {
@@ -498,4 +501,5 @@ export function disposeComposerAgentControl(control: ComposerAgentControl): void
   control.permissionModePicker.dispose();
   control.modelPicker.dispose();
   control.picker.dispose();
+  control.submissionStatus.remove();
 }

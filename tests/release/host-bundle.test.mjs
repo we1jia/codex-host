@@ -16,6 +16,7 @@ function validMetafile(extraInputs = {}) {
       "packages/host-runtime/src/release-main.ts": {},
       "packages/host-runtime/src/app-server-host.ts": {},
       "packages/host-runtime/src/adapter-composition.ts": {},
+      "packages/adapters/antigravity/dist/index.js": {},
       "packages/adapters/pi/dist/index.js": {},
       "packages/adapters/claude-code/dist/index.js": {},
       "packages/adapters/deepseek-harness/dist/index.js": {},
@@ -60,6 +61,12 @@ describe("release Host Bundle", () => {
   });
 
   it("rejects a closure missing any production Adapter", () => {
+    const withoutAntigravity = { ...validMetafile().inputs };
+    delete withoutAntigravity["packages/adapters/antigravity/dist/index.js"];
+    expect(() => auditHostBundleMetafile({ inputs: withoutAntigravity })).toThrow(
+      "missing required input: /packages/adapters/antigravity/",
+    );
+
     const withoutPi = { ...validMetafile().inputs };
     delete withoutPi["packages/adapters/pi/dist/index.js"];
     expect(() => auditHostBundleMetafile({ inputs: withoutPi })).toThrow(
@@ -101,6 +108,8 @@ describe("release Host Bundle", () => {
       expect(source).not.toContain("--codexhost-compatibility-update");
       expect(source).toContain("Claude Code is not installed");
       expect(source).toContain("CODEXHOST_DEEPSEEK_HARNESS_ENDPOINT");
+      expect(source).toContain("CODEXHOST_ANTIGRAVITY_COMMAND");
+      expect(source).not.toContain("antigravity_agent_sdk");
       expect(source).not.toContain("claude-agent-sdk-darwin-arm64");
       expect(source).not.toContain("dsh-jsonrpc-agent");
       expect(source).not.toContain("runtime/cordis.yml");

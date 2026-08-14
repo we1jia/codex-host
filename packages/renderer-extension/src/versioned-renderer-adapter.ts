@@ -34,6 +34,7 @@ export const DEEPSEEK_HARNESS_TRANSPORT_MODEL_ID = "codexhost/deepseek-harness-n
 export const DEEPSEEK_HARNESS_TRANSPORT_MODEL_PREFIX = `${DEEPSEEK_HARNESS_TRANSPORT_MODEL_ID}@`;
 export const GROK_TRANSPORT_MODEL_ID = "codexhost/grok-native";
 export const GROK_TRANSPORT_MODEL_PREFIX = `${GROK_TRANSPORT_MODEL_ID}@`;
+export const ANTIGRAVITY_TRANSPORT_MODEL_ID = "codexhost/antigravity-native";
 
 export type RendererAdapterState = "installing" | "ready" | "unsupported";
 
@@ -142,6 +143,7 @@ function transportModelIdForAgent(agent: RendererAgent): string | null {
   if (agent === "claude-code") return CLAUDE_CODE_TRANSPORT_MODEL_ID;
   if (agent === "deepseek-harness") return DEEPSEEK_HARNESS_TRANSPORT_MODEL_ID;
   if (agent === "grok") return GROK_TRANSPORT_MODEL_ID;
+  if (agent === "antigravity") return ANTIGRAVITY_TRANSPORT_MODEL_ID;
   return null;
 }
 
@@ -150,7 +152,8 @@ function isTransportModelId(model: unknown): boolean {
     isPiTransportModelId(model) ||
     isClaudeTransportModelId(model) ||
     isDeepSeekHarnessTransportModelId(model) ||
-    isGrokTransportModelId(model)
+    isGrokTransportModelId(model) ||
+    model === ANTIGRAVITY_TRANSPORT_MODEL_ID
   );
 }
 

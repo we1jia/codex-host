@@ -49,6 +49,7 @@ export type {
   ThreadListSortKey,
 } from "./thread-management.js";
 export {
+  ANTIGRAVITY_NATIVE_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_NATIVE_TRANSPORT_MODEL_ID,
   CLAUDE_CODE_NATIVE_TRANSPORT_MODEL_PREFIX,
   DEEPSEEK_HARNESS_NATIVE_TRANSPORT_MODEL_ID,
@@ -58,6 +59,7 @@ export {
   GROK_NATIVE_TRANSPORT_MODEL_PREFIX,
   PI_NATIVE_TRANSPORT_MODEL_ID,
   PI_NATIVE_TRANSPORT_MODEL_PREFIX,
+  decodeAntigravityTransportSelection,
   decodeClaudeTransportSelection,
   decodeCreateRoute,
   decodeDeepSeekHarnessTransportSelection,
@@ -66,6 +68,7 @@ export {
   decodeGrokTransportSelection,
   decodePiTransportModel,
   decodePiTransportSelection,
+  encodeAntigravityTransportModel,
   encodeClaudeTransportModel,
   encodeDeepSeekHarnessTransportModel,
   encodeExternalTransportSelection,

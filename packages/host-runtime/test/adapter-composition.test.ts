@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { HarnessInspection } from "@codexhost/harness-adapter";
 import {
+  ANTIGRAVITY_COMMAND_ENV,
   CLAUDE_CODE_COMMAND_ENV,
   GROK_COMMAND_ENV,
   createExternalHarnessAdapters,
@@ -38,10 +39,17 @@ describe("Host external Harness composition", () => {
   it("registers all external Harnesses by default without resolving executables", async () => {
     const adapters = createExternalHarnessAdapters({ PATH: "" });
 
-    expect([...adapters.keys()]).toEqual(["pi", "claude-code", "deepseek-harness", "grok"]);
+    expect([...adapters.keys()]).toEqual([
+      "pi",
+      "claude-code",
+      "deepseek-harness",
+      "grok",
+      "antigravity",
+    ]);
     expect(adapters.get("claude-code")?.harnessId).toBe("claude-code");
     expect(adapters.get("deepseek-harness")?.harnessId).toBe("deepseek-harness");
     expect(adapters.get("grok")?.harnessId).toBe("grok");
+    expect(adapters.get("antigravity")?.harnessId).toBe("antigravity");
     await Promise.all([...adapters.values()].map((adapter) => adapter.close()));
   });
 
@@ -52,6 +60,19 @@ describe("Host external Harness composition", () => {
     });
 
     await expect(adapters.get("grok")?.inspect()).resolves.toMatchObject({
+      status: "notInstalled",
+      error: { code: "notInstalled" },
+    });
+    await Promise.all([...adapters.values()].map((adapter) => adapter.close()));
+  });
+
+  it("preserves an explicit user-installed Antigravity command", async () => {
+    const adapters = createExternalHarnessAdapters({
+      PATH: "",
+      [ANTIGRAVITY_COMMAND_ENV]: "/synthetic/agy",
+    });
+
+    await expect(adapters.get("antigravity")?.inspect()).resolves.toMatchObject({
       status: "notInstalled",
       error: { code: "notInstalled" },
     });
